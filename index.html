@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe de Avatar — Reto Revisión con IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0D1117;
+    --slate: #1E2A3A;
+    --ocean: #1A4A6B;
+    --sky: #2979A8;
+    --ice: #E8F4FD;
+    --snow: #FFFFFF;
+    --mist: #F7FAFC;
+    --pearl: #EEF2F7;
+    --gold: #C8922A;
+    --gold-lt: #FFF8E7;
+    --coral: #C0392B;
+    --coral-lt: #FDEDEC;
+    --sage: #1A7A4A;
+    --sage-lt: #E9F7EF;
+    --amber: #E67E22;
+    --amber-lt: #FEF9E7;
+    --gray: #64748B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--mist); color: var(--ink); line-height: 1.6; }
+
+  /* HEADER */
+  .header { background: var(--slate); color: var(--snow); padding: 3rem 2rem 2rem; text-align: center; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--ocean), var(--sky), var(--gold)); }
+  .header-tag { font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--sky); margin-bottom: .75rem; font-weight: 500; }
+  .header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; line-height: 1.2; margin-bottom: .75rem; }
+  .header-sub { font-size: 14px; color: #8CA9C5; max-width: 600px; margin: 0 auto; }
+  .header-meta { display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; flex-wrap: wrap; }
+  .header-meta span { font-size: 12px; color: #8CA9C5; }
+  .header-meta strong { color: var(--snow); }
+
+  /* NAV */
+  .nav { background: var(--snow); border-bottom: 1px solid var(--pearl); padding: .75rem 2rem; display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; position: sticky; top: 0; z-index: 100; }
+  .nav a { font-size: 12px; font-weight: 500; color: var(--gray); text-decoration: none; padding: .35rem .85rem; border-radius: 20px; border: 1px solid var(--pearl); transition: all .15s; }
+  .nav a:hover { background: var(--ice); color: var(--ocean); border-color: var(--sky); }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .section { margin-bottom: 3rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--sky); margin-bottom: .5rem; }
+  .section-title { font-size: 1.4rem; font-weight: 700; color: var(--slate); margin-bottom: 1.5rem; padding-bottom: .75rem; border-bottom: 2px solid var(--ice); }
+
+  /* KPI GRID */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .kpi { background: var(--snow); border: 1px solid var(--pearl); border-radius: 12px; padding: 1.25rem; text-align: center; }
+  .kpi-n { font-size: 2rem; font-weight: 700; }
+  .kpi-l { font-size: 11px; color: var(--gray); margin-top: .25rem; }
+  .kpi-sub { font-size: 11px; font-weight: 600; margin-top: .4rem; }
+  .kpi.ok .kpi-n, .kpi.ok .kpi-sub { color: var(--sage); }
+  .kpi.alert .kpi-n, .kpi.alert .kpi-sub { color: var(--coral); }
+  .kpi.warn .kpi-n, .kpi.warn .kpi-sub { color: var(--amber); }
+  .kpi.blue .kpi-n, .kpi.blue .kpi-sub { color: var(--ocean); }
+
+  /* CHART GRID */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; }
+  @media (max-width: 640px) { .chart-grid { grid-template-columns: 1fr; } }
+  .chart-box { background: var(--snow); border: 1px solid var(--pearl); border-radius: 12px; padding: 1.25rem; }
+  .chart-title { font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1rem; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .bar-label { font-size: 11px; color: var(--gray); min-width: 140px; text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 8px; background: var(--pearl); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-val { font-size: 11px; font-weight: 600; color: var(--ink); min-width: 40px; text-align: right; }
+  .chart-badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; display: inline-block; margin-top: .75rem; }
+  .badge-blue { background: var(--ice); color: var(--ocean); }
+  .badge-red { background: var(--coral-lt); color: var(--coral); }
+  .badge-green { background: var(--sage-lt); color: var(--sage); }
+  .badge-amber { background: var(--amber-lt); color: var(--amber); }
+  .badge-gold { background: var(--gold-lt); color: var(--gold); }
+
+  /* HISTOGRAM */
+  .hist-wrap { margin-bottom: 1rem; }
+  .hist-bars { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; height: 80px; align-items: end; margin-bottom: 4px; }
+  .hist-bar { border-radius: 3px 3px 0 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 3px; }
+  .hist-bar span { font-size: 9px; font-weight: 600; color: var(--snow); }
+  .hist-labels { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+  .hist-label { font-size: 10px; color: var(--gray); text-align: center; }
+  .hist-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: .75rem; }
+  .hist-legend span { font-size: 11px; font-weight: 600; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .tab-btn { font-size: 12px; font-weight: 500; padding: .4rem 1rem; border-radius: 20px; border: 1px solid var(--pearl); background: var(--snow); color: var(--gray); cursor: pointer; transition: all .15s; }
+  .tab-btn.active { background: var(--ocean); color: var(--snow); border-color: var(--ocean); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* PATTERN CARDS */
+  .pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media (max-width: 640px) { .pattern-grid { grid-template-columns: 1fr; } }
+  .pattern-card { background: var(--snow); border: 1px solid var(--pearl); border-radius: 12px; padding: 1.25rem; border-top: 3px solid; }
+  .pattern-card.blue { border-top-color: var(--ocean); }
+  .pattern-card.red { border-top-color: var(--coral); }
+  .pattern-card.amber { border-top-color: var(--amber); }
+  .pattern-card.green { border-top-color: var(--sage); }
+  .pattern-n { font-size: 2rem; font-weight: 700; }
+  .pattern-card.blue .pattern-n { color: var(--ocean); }
+  .pattern-card.red .pattern-n { color: var(--coral); }
+  .pattern-card.amber .pattern-n { color: var(--amber); }
+  .pattern-card.green .pattern-n { color: var(--sage); }
+  .pattern-title { font-size: 12px; font-weight: 700; color: var(--slate); margin-bottom: .4rem; text-transform: uppercase; letter-spacing: .05em; }
+  .pattern-desc { font-size: 12px; color: var(--gray); line-height: 1.5; margin-top: .4rem; }
+
+  /* QUOTES */
+  .quotes-box { background: var(--snow); border: 1px solid var(--pearl); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  .quotes-title { font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 1rem; }
+  .quote { border-left: 3px solid; padding: .6rem 1rem; margin-bottom: .6rem; font-size: 13px; font-style: italic; color: var(--ink); line-height: 1.5; border-radius: 0 8px 8px 0; }
+  .quote.blue { border-color: var(--ocean); background: var(--ice); }
+  .quote.red { border-color: var(--coral); background: var(--coral-lt); }
+  .quote.amber { border-color: var(--amber); background: var(--amber-lt); }
+  .quote.green { border-color: var(--sage); background: var(--sage-lt); }
+
+  /* AVATAR CARDS */
+  .avatar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+  .avatar-card { background: var(--snow); border: 1px solid var(--pearl); border-radius: 12px; padding: 1.5rem; }
+  .avatar-card-title { font-size: 14px; font-weight: 700; color: var(--slate); margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
+  .avatar-item { display: flex; align-items: flex-start; gap: .6rem; margin-bottom: .75rem; }
+  .avatar-item-n { font-size: 10px; font-weight: 700; color: var(--snow); background: var(--ocean); border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .avatar-item-n.red { background: var(--coral); }
+  .avatar-item-n.amber { background: var(--amber); }
+  .avatar-item-text { font-size: 13px; color: var(--ink); line-height: 1.5; }
+  .avatar-item-text strong { color: var(--slate); font-weight: 600; }
+
+  /* FULL BOX */
+  .full-box { background: var(--snow); border: 1px solid var(--pearl); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  .full-box p { font-size: 13px; color: var(--ink); line-height: 1.7; }
+  .full-box strong { color: var(--slate); }
+
+  /* FOOTER */
+  .footer { background: var(--slate); color: #8CA9C5; text-align: center; padding: 1.5rem; font-size: 12px; margin-top: 3rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-tag">Documento de mercado · Teside Academy</div>
+  <h1>Informe de Avatar<br>Reto Revisión con IA</h1>
+  <p class="header-sub">Análisis basado en 282 compradores del lanzamiento pago · Junio 2026</p>
+  <div class="header-meta">
+    <span><strong>282</strong> compradores totales</span>
+    <span><strong>186</strong> encuestas completadas</span>
+    <span><strong>66%</strong> tasa de respuesta</span>
+    <span><strong>Junio 2026</strong></span>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#resumen">Resumen</a>
+  <a href="#demografia">Demografía</a>
+  <a href="#tesis">Situación de tesis</a>
+  <a href="#dolores">Bloqueos</a>
+  <a href="#decision">Decisión</a>
+  <a href="#oportunidades">Oportunidades</a>
+  <a href="#avatar">Avatar completo</a>
+</nav>
+
+<div class="container">
+
+  <!-- RESUMEN -->
+  <div class="section" id="resumen">
+    <div class="section-label">01</div>
+    <div class="section-title">Resumen ejecutivo</div>
+    <div class="kpi-grid">
+      <div class="kpi blue"><div class="kpi-n">282</div><div class="kpi-l">Total compradores</div></div>
+      <div class="kpi ok"><div class="kpi-n">186</div><div class="kpi-l">Formularios completos</div><div class="kpi-sub">66.0%</div></div>
+      <div class="kpi warn"><div class="kpi-n">96</div><div class="kpi-l">Pendientes</div><div class="kpi-sub">34.0%</div></div>
+      <div class="kpi alert"><div class="kpi-n">3.9%</div><div class="kpi-l">Conv. OB VIP (11)</div><div class="kpi-sub">Meta PE: 27–40%</div></div>
+      <div class="kpi ok"><div class="kpi-n">28.7%</div><div class="kpi-l">Conv. OB Grabación (81)</div><div class="kpi-sub">Dentro del rango</div></div>
+      <div class="kpi ok"><div class="kpi-n">8.49</div><div class="kpi-l">Compromiso promedio /10</div><div class="kpi-sub">50.5% se calificó 10/10</div></div>
+    </div>
+    <div class="full-box">
+      <p>El lanzamiento pago del <strong>Reto Revisión con IA</strong> generó 282 compradores en los 4 tramos de precio ($7.45 → $9.47 → $12.45 → $27.45). El 66% completó la encuesta de bienvenida, lo que representa una de las tasas de respuesta más altas para un producto de bajo ticket. El dato más crítico: el <strong>OB VIP tiene una conversión de 3.9%</strong> vs. la meta del 27–40% de PE — el copy actual suena a "clase extra" y no a diagnóstico previo a MAT.</p>
+    </div>
+  </div>
+
+  <!-- DEMOGRAFÍA -->
+  <div class="section" id="demografia">
+    <div class="section-label">02</div>
+    <div class="section-title">Demografía — base consolidada</div>
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">Edad (n=186)</div>
+        <div class="bar-row"><div class="bar-label">51–55</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1A4A6B"></div></div><div class="bar-val">18.8%</div></div>
+        <div class="bar-row"><div class="bar-label">41–45</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1A4A6B"></div></div><div class="bar-val">18.8%</div></div>
+        <div class="bar-row"><div class="bar-label">46–50</div><div class="bar-track"><div class="bar-fill" style="width:89%;background:#2979A8"></div></div><div class="bar-val">16.7%</div></div>
+        <div class="bar-row"><div class="bar-label">61 a más</div><div class="bar-track"><div class="bar-fill" style="width:80%;background:#2979A8"></div></div><div class="bar-val">15.1%</div></div>
+        <div class="bar-row"><div class="bar-label">56–60</div><div class="bar-track"><div class="bar-fill" style="width:69%;background:#5BA4CC"></div></div><div class="bar-val">12.9%</div></div>
+        <div class="bar-row"><div class="bar-label">36–40</div><div class="bar-track"><div class="bar-fill" style="width:52%;background:#5BA4CC"></div></div><div class="bar-val">9.7%</div></div>
+        <div class="bar-row"><div class="bar-label">31–35</div><div class="bar-track"><div class="bar-fill" style="width:35%;background:#A8D0E6"></div></div><div class="bar-val">6.5%</div></div>
+        <div class="bar-row"><div class="bar-label">21–30</div><div class="bar-track"><div class="bar-fill" style="width:9%;background:#D0E8F5"></div></div><div class="bar-val">1.6%</div></div>
+        <span class="chart-badge badge-blue">Mayor de 36 años: 92.9%</span>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">País (n=186)</div>
+        <div class="bar-row"><div class="bar-label">Perú</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1A4A6B"></div></div><div class="bar-val">45.2%</div></div>
+        <div class="bar-row"><div class="bar-label">México</div><div class="bar-track"><div class="bar-fill" style="width:37%;background:#2979A8"></div></div><div class="bar-val">16.7%</div></div>
+        <div class="bar-row"><div class="bar-label">Colombia</div><div class="bar-track"><div class="bar-fill" style="width:33%;background:#2979A8"></div></div><div class="bar-val">15.1%</div></div>
+        <div class="bar-row"><div class="bar-label">Argentina</div><div class="bar-track"><div class="bar-fill" style="width:14%;background:#5BA4CC"></div></div><div class="bar-val">6.5%</div></div>
+        <div class="bar-row"><div class="bar-label">Panamá</div><div class="bar-track"><div class="bar-fill" style="width:6%;background:#A8D0E6"></div></div><div class="bar-val">2.7%</div></div>
+        <div class="bar-row"><div class="bar-label">Chile</div><div class="bar-track"><div class="bar-fill" style="width:6%;background:#A8D0E6"></div></div><div class="bar-val">2.7%</div></div>
+        <div class="bar-row"><div class="bar-label">Venezuela</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:#D0E8F5"></div></div><div class="bar-val">2.2%</div></div>
+        <div class="bar-row"><div class="bar-label">Bolivia</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:#D0E8F5"></div></div><div class="bar-val">2.2%</div></div>
+        <div class="bar-row"><div class="bar-label">Ecuador / Paraguay</div><div class="bar-track"><div class="bar-fill" style="width:7%;background:#D0E8F5"></div></div><div class="bar-val">3.2%</div></div>
+        <span class="chart-badge badge-blue">Perú + Méx + Col: 77.0%</span>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">Grado académico (n=186)</div>
+        <div class="bar-row"><div class="bar-label">Doctorado</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#C0392B"></div></div><div class="bar-val">33.3%</div></div>
+        <div class="bar-row"><div class="bar-label">Maestría / Magister</div><div class="bar-track"><div class="bar-fill" style="width:93%;background:#E67E22"></div></div><div class="bar-val">31.2%</div></div>
+        <div class="bar-row"><div class="bar-label">Pregrado / Licenciatura</div><div class="bar-track"><div class="bar-fill" style="width:13%;background:#1A4A6B"></div></div><div class="bar-val">4.3%</div></div>
+        <div class="bar-row"><div class="bar-label">Otros</div><div class="bar-track"><div class="bar-fill" style="width:31%;background:#888"></div></div><div class="bar-val">~31%</div></div>
+        <span class="chart-badge badge-red">Posgrado combinado: ~64.5%</span>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Inversión previa en ayuda externa (n=186)</div>
+        <div class="bar-row"><div class="bar-label">Nunca</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#C0392B"></div></div><div class="bar-val">57.0%</div></div>
+        <div class="bar-row"><div class="bar-label">Menos de $100</div><div class="bar-track"><div class="bar-fill" style="width:38%;background:#E67E22"></div></div><div class="bar-val">21.5%</div></div>
+        <div class="bar-row"><div class="bar-label">$100–$500</div><div class="bar-track"><div class="bar-fill" style="width:26%;background:#1A7A4A"></div></div><div class="bar-val">15.1%</div></div>
+        <div class="bar-row"><div class="bar-label">Más de $500</div><div class="bar-track"><div class="bar-fill" style="width:11%;background:#1A7A4A"></div></div><div class="bar-val">6.5%</div></div>
+        <span class="chart-badge badge-red">Primera compra de ayuda: 57.0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SITUACIÓN TESIS -->
+  <div class="section" id="tesis">
+    <div class="section-label">03</div>
+    <div class="section-title">Situación real de la tesis</div>
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">Etapa actual (n=186)</div>
+        <div class="bar-row"><div class="bar-label">Idea inicial sin aprobación</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#C0392B"></div></div><div class="bar-val">43.5%</div></div>
+        <div class="bar-row"><div class="bar-label">Marco teórico en desarrollo</div><div class="bar-track"><div class="bar-fill" style="width:46%;background:#E67E22"></div></div><div class="bar-val">19.9%</div></div>
+        <div class="bar-row"><div class="bar-label">Proyecto aprobado</div><div class="bar-track"><div class="bar-fill" style="width:29%;background:#1A4A6B"></div></div><div class="bar-val">12.4%</div></div>
+        <div class="bar-row"><div class="bar-label">Recolección de datos</div><div class="bar-track"><div class="bar-fill" style="width:21%;background:#2979A8"></div></div><div class="bar-val">9.1%</div></div>
+        <div class="bar-row"><div class="bar-label">Redacción final</div><div class="bar-track"><div class="bar-fill" style="width:14%;background:#5BA4CC"></div></div><div class="bar-val">5.9%</div></div>
+        <div class="bar-row"><div class="bar-label">Análisis / Revisión</div><div class="bar-track"><div class="bar-fill" style="width:9%;background:#A8D0E6"></div></div><div class="bar-val">3.8%</div></div>
+        <span class="chart-badge badge-red">Inicio + Marco teórico: 63.4%</span>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Horas semanales dedicadas (n=186)</div>
+        <div class="bar-row"><div class="bar-label">3–4 horas</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#C0392B"></div></div><div class="bar-val">40.9%</div></div>
+        <div class="bar-row"><div class="bar-label">1–2 horas</div><div class="bar-track"><div class="bar-fill" style="width:84%;background:#E67E22"></div></div><div class="bar-val">34.4%</div></div>
+        <div class="bar-row"><div class="bar-label">5–7 horas</div><div class="bar-track"><div class="bar-fill" style="width:28%;background:#1A4A6B"></div></div><div class="bar-val">11.3%</div></div>
+        <div class="bar-row"><div class="bar-label">Más de 10 horas</div><div class="bar-track"><div class="bar-fill" style="width:17%;background:#2979A8"></div></div><div class="bar-val">7.0%</div></div>
+        <div class="bar-row"><div class="bar-label">8–10 horas</div><div class="bar-track"><div class="bar-fill" style="width:16%;background:#5BA4CC"></div></div><div class="bar-val">6.5%</div></div>
+        <span class="chart-badge badge-red">Menos de 4h/semana: 75.3%</span>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">Plan semanal (n=186)</div>
+        <div class="bar-row"><div class="bar-label">Sin plan definido</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#C0392B"></div></div><div class="bar-val">64.5%</div></div>
+        <div class="bar-row"><div class="bar-label">Plan incumplido</div><div class="bar-track"><div class="bar-fill" style="width:33%;background:#E67E22"></div></div><div class="bar-val">21.5%</div></div>
+        <div class="bar-row"><div class="bar-label">Plan que cumple</div><div class="bar-track"><div class="bar-fill" style="width:22%;background:#1A7A4A"></div></div><div class="bar-val">14.0%</div></div>
+        <span class="chart-badge badge-red">Sin plan o no lo cumple: 86.0%</span>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Principal retraso (n=186)</div>
+        <div class="bar-row"><div class="bar-label">Dudas metodológicas</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1A4A6B"></div></div><div class="bar-val">41.4%</div></div>
+        <div class="bar-row"><div class="bar-label">Falta de tiempo</div><div class="bar-track"><div class="bar-fill" style="width:58%;background:#2979A8"></div></div><div class="bar-val">24.2%</div></div>
+        <div class="bar-row"><div class="bar-label">Falta de estructura</div><div class="bar-track"><div class="bar-fill" style="width:48%;background:#5BA4CC"></div></div><div class="bar-val">19.9%</div></div>
+        <div class="bar-row"><div class="bar-label">Desmotivación</div><div class="bar-track"><div class="bar-fill" style="width:20%;background:#A8D0E6"></div></div><div class="bar-val">8.1%</div></div>
+        <div class="bar-row"><div class="bar-label">Obs. del asesor</div><div class="bar-track"><div class="bar-fill" style="width:16%;background:#D0E8F5"></div></div><div class="bar-val">6.5%</div></div>
+        <span class="chart-badge badge-blue">Método + Estructura: 61.3%</span>
+      </div>
+    </div>
+    <!-- COMPROMISO -->
+    <div class="chart-box" style="margin-bottom:1.5rem">
+      <div class="chart-title">Compromiso 1–10 (n=186) — Promedio: 8.49</div>
+      <div class="hist-wrap">
+        <div class="hist-bars">
+          <div class="hist-bar" style="height:10%;background:#C0392B"><span>1.6</span></div>
+          <div class="hist-bar" style="height:6%;background:#C0392B"><span>1.1</span></div>
+          <div class="hist-bar" style="height:6%;background:#C0392B"><span>1.1</span></div>
+          <div class="hist-bar" style="height:4%;background:#E67E22"></div>
+          <div class="hist-bar" style="height:37%;background:#E67E22"><span>5.9</span></div>
+          <div class="hist-bar" style="height:37%;background:#E67E22"><span>5.9</span></div>
+          <div class="hist-bar" style="height:32%;background:#E67E22"><span>5.4</span></div>
+          <div class="hist-bar" style="height:55%;background:#1A7A4A"><span>17.7</span></div>
+          <div class="hist-bar" style="height:32%;background:#1A7A4A"><span>10.2</span></div>
+          <div class="hist-bar" style="height:100%;background:#1A7A4A"><span>50.5</span></div>
+        </div>
+        <div class="hist-labels">
+          <div class="hist-label">1</div><div class="hist-label">2</div><div class="hist-label">3</div>
+          <div class="hist-label">4</div><div class="hist-label">5</div><div class="hist-label">6</div>
+          <div class="hist-label">7</div><div class="hist-label">8</div><div class="hist-label">9</div>
+          <div class="hist-label">10</div>
+        </div>
+      </div>
+      <div class="hist-legend">
+        <span class="chart-badge badge-green">Alta 8–10: 78.5% (146)</span>
+        <span class="chart-badge badge-amber">Media 5–7: 17.2% (32)</span>
+        <span class="chart-badge badge-red">Baja 1–4: 4.3% (8)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOQUEOS -->
+  <div class="section" id="dolores">
+    <div class="section-label">04</div>
+    <div class="section-title">Bloqueos principales — texto abierto (184 respuestas)</div>
+    <div class="pattern-grid">
+      <div class="pattern-card blue">
+        <div class="pattern-title">Antecedentes / Literatura</div>
+        <div class="pattern-n">~28%</div>
+        <div class="pattern-desc">Buscar, organizar, identificar fuentes correctas, no saber si van por buen camino con sus referencias.</div>
+        <span class="chart-badge badge-blue">Dolor #1 específico del producto</span>
+      </div>
+      <div class="pattern-card red">
+        <div class="pattern-title">Marco teórico / Metodología</div>
+        <div class="pattern-n">~24%</div>
+        <div class="pattern-desc">Cómo desarrollarlo, estructura, dudas metodológicas. Frecuentemente aparece junto a "antecedentes".</div>
+        <span class="chart-badge badge-red">Aparece combinado con antecedentes</span>
+      </div>
+      <div class="pattern-card amber">
+        <div class="pattern-title">Tiempo / Carga laboral</div>
+        <div class="pattern-n">~21%</div>
+        <div class="pattern-desc">Trabajo, familia, clases. La palabra "tiempo" es la más mencionada en una sola palabra en toda la encuesta.</div>
+        <span class="chart-badge badge-amber">Segundo más frecuente</span>
+      </div>
+      <div class="pattern-card green">
+        <div class="pattern-title">Inseguridad / Miedo emocional</div>
+        <div class="pattern-n">~15%</div>
+        <div class="pattern-desc">Miedo a hacerlo mal, inseguridad, procrastinación, trauma de intentos anteriores fallidos.</div>
+        <span class="chart-badge badge-green">Dolor emocional — no metodológico</span>
+      </div>
+    </div>
+    <div class="quotes-box">
+      <div class="quotes-title">Frases textuales — Bloqueos</div>
+      <div class="quote red">"a pasado mucho tiempo y me olvide por completo, verdaderamente estoy en cero"</div>
+      <div class="quote red">"Es, que mi primer maestría demoré 10 años en hacer la tesis"</div>
+      <div class="quote blue">"No se cuál es la literatura correcta para mi investigación"</div>
+      <div class="quote blue">"No poder ordenar y discriminar la información existente y no poder encaminarla hacia el tema de mi interés"</div>
+      <div class="quote blue">"Temor a enredarme con demasiada información y tener un tema demasiado específico con pocos referentes"</div>
+      <div class="quote blue">"Me piden antecedentes con fecha post pandemia, en lo local no encuentro nada"</div>
+      <div class="quote amber">"Estoy llena de información y necesito continuar con la redacción"</div>
+      <div class="quote amber">"Que estoy en ese paso en donde no se si los antecedentes que tengo son los principales y tengo decenas de articulos"</div>
+      <div class="quote green">"Temor a hacerlo mal siempre pido a alguien que me lo haga"</div>
+      <div class="quote green">"Insegura del tema... nunca he hecho un trabajo académico con todos esos requisitos"</div>
+    </div>
+  </div>
+
+  <!-- DECISIÓN -->
+  <div class="section" id="decision">
+    <div class="section-label">05</div>
+    <div class="section-title">¿Qué los llevó a inscribirse? — 185 respuestas</div>
+    <div class="pattern-grid">
+      <div class="pattern-card red">
+        <div class="pattern-title">Urgencia de plazo / tiempo límite</div>
+        <div class="pattern-n">~30%</div>
+        <div class="pattern-desc">Fechas de entrega, vencimiento de programas, exámenes próximos. Gatillo principal de compra.</div>
+        <span class="chart-badge badge-red">Gatillo #1 de compra</span>
+      </div>
+      <div class="pattern-card blue">
+        <div class="pattern-title">Querer avanzar / estar estancado</div>
+        <div class="pattern-n">~27%</div>
+        <div class="pattern-desc">Sensación de no avanzar, necesidad de método y orientación, búsqueda de estructura.</div>
+        <span class="chart-badge badge-blue">Segundo gatillo más frecuente</span>
+      </div>
+      <div class="pattern-card amber">
+        <div class="pattern-title">Confianza en Mayra / contenido visto</div>
+        <div class="pattern-n">~19%</div>
+        <div class="pattern-desc">Vio clases gratuitas, sigue en YouTube/Facebook, alumna anterior, precio accesible.</div>
+        <span class="chart-badge badge-amber">Confirma que el orgánico convierte</span>
+      </div>
+      <div class="pattern-card green">
+        <div class="pattern-title">Oportunidad laboral / ascenso</div>
+        <div class="pattern-n">~11%</div>
+        <div class="pattern-desc">Necesitan el grado para ascender, cambiar de trabajo, ingresar a docencia universitaria.</div>
+        <span class="chart-badge badge-green">Perfil MAT prioritario</span>
+      </div>
+    </div>
+    <div class="quotes-box">
+      <div class="quotes-title">Frases textuales — Decisión de compra</div>
+      <div class="quote red">"Necesidad de claridad metodológica y acompañamiento para cerrar el marco teórico con el que tengo un TRAUMA desde que terminé la maestría, porque fue el motivo de que dejara la tesis la primera vez"</div>
+      <div class="quote red">"Es que el tiempo se pasa volando y cuando me doy cuenta ya se terminó el año"</div>
+      <div class="quote red">"Último plazo de entrega de la tesis es el 30 de junio. Después de esa fecha, la universidad no recibirá más trámites porque se cierra definitivamente"</div>
+      <div class="quote amber">"siempre te sigo en el facebook, por falta de economia no me inscribi en su taller las veces pasado"</div>
+      <div class="quote amber">"Las clases gratuitas que escuché me aclararon mucho pero en ese momento no pude pagar el curso entero"</div>
+      <div class="quote blue">"Estoy estancada, ya llevo alrededor de un mes sin avanzar"</div>
+      <div class="quote green">"Quiero hacer mi tesis, sin ansiedad, sin miedo al plagio y al uso de IA inadecuada"</div>
+    </div>
+  </div>
+
+  <!-- OPORTUNIDADES -->
+  <div class="section" id="oportunidades">
+    <div class="section-label">06</div>
+    <div class="section-title">Oportunidades en riesgo — 182 respuestas</div>
+    <div class="pattern-grid">
+      <div class="pattern-card blue">
+        <div class="pattern-title">Ascenso / Promoción laboral</div>
+        <div class="pattern-n">~40%</div>
+        <div class="pattern-desc">Ascenso de categoría, nombramiento, escala salarial, concursos públicos, RENACYT/SNI.</div>
+        <span class="chart-badge badge-blue">Motivación #1 para terminar</span>
+      </div>
+      <div class="pattern-card amber">
+        <div class="pattern-title">Docencia universitaria</div>
+        <div class="pattern-n">~19%</div>
+        <div class="pattern-desc">Dar clases en universidad, ratificación docente, acceder a puestos académicos.</div>
+        <span class="chart-badge badge-amber">Perfil docente muy fuerte</span>
+      </div>
+      <div class="pattern-card red">
+        <div class="pattern-title">Perder el grado / vencimiento</div>
+        <div class="pattern-n">~15%</div>
+        <div class="pattern-desc">Plazos de universidad, cierre de programas, perder la última oportunidad institucional.</div>
+        <span class="chart-badge badge-red">Urgencia existencial — MAT prioritario</span>
+      </div>
+      <div class="pattern-card green">
+        <div class="pattern-title">Logro personal / meta propia</div>
+        <div class="pattern-n">~14%</div>
+        <div class="pattern-desc">"Es un desafío personal", "ejemplo para mis hijos", "meta de vida". Motivación intrínseca.</div>
+        <span class="chart-badge badge-green">Alta motivación intrínseca</span>
+      </div>
+    </div>
+    <div class="quotes-box">
+      <div class="quotes-title">Frases textuales — Oportunidades en riesgo</div>
+      <div class="quote red">"Pierdo la posibilidad de obtener el grado. en la universidad me han amenazado q o es este año o ya NUNCA mas podré sacar el titulo porque esta la mi ultima opción que me dan.... y eso me tiene ATORMENTADA"</div>
+      <div class="quote red">"Puedo perder mi empleo, ya que tengo un plazo definido para entregar el comprobante de grado"</div>
+      <div class="quote blue">"A mis 60 años, debo ser y estar lo suficientemente competitivo en comparación de las nuevas generaciones"</div>
+      <div class="quote amber">"Cambiarme de trabajo, dejar la escuela para empezar a trabajar en una universidad. Me encantaría enseñar investigación; pero me siento limitada"</div>
+      <div class="quote green">"nada solo estoy acostumbrada a terminar lo que inicio"</div>
+      <div class="quote green">"Es un desafío personal y un ejemplo a mis hijos. Si me titulo éste año para la facultad es un reconocimiento a su eficiencia terminal"</div>
+    </div>
+  </div>
+
+  <!-- AVATAR COMPLETO -->
+  <div class="section" id="avatar">
+    <div class="section-label">07</div>
+    <div class="section-title">Avatar completo — basado en datos reales</div>
+    <div class="avatar-grid">
+      <div class="avatar-card">
+        <div class="avatar-card-title">🔥 8 Dolores</div>
+        <div class="avatar-item"><div class="avatar-item-n red">1</div><div class="avatar-item-text"><strong>No sabe qué antecedentes conservar</strong> — tiene demasiada información y no puede filtrar lo que realmente aporta a su investigación.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n red">2</div><div class="avatar-item-text"><strong>Dudas metodológicas paralizantes</strong> — no sabe si va por buen camino, si usa el enfoque correcto, si sus fuentes son válidas.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n red">3</div><div class="avatar-item-text"><strong>Tiempo fragmentado e insuficiente</strong> — el 75% dedica menos de 4 horas semanales entre trabajo, familia y otras responsabilidades.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n red">4</div><div class="avatar-item-text"><strong>Opera sin plan definido</strong> — el 86% no tiene plan o tiene uno que no cumple. Avanza en modo reactivo.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n red">5</div><div class="avatar-item-text"><strong>Miedo al plagio y a la IA</strong> — quiere usar IA pero teme que invente referencias o que le rechacen el trabajo por similitud.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n red">6</div><div class="avatar-item-text"><strong>Trauma de intentos anteriores</strong> — el 20% ya dejó la tesis antes o lleva más de 24 meses estancado en el mismo punto.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n red">7</div><div class="avatar-item-text"><strong>Correcciones repetidas del asesor</strong> — el 30% está en ciclo de observaciones constantes sin saber cómo romperlo.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n red">8</div><div class="avatar-item-text"><strong>No encuentra antecedentes para su tema</strong> — siente que su tema es demasiado específico o nuevo y que no hay literatura suficiente.</div></div>
+      </div>
+      <div class="avatar-card">
+        <div class="avatar-card-title">✨ 8 Deseos</div>
+        <div class="avatar-item"><div class="avatar-item-n">1</div><div class="avatar-item-text"><strong>Terminar la tesis este año</strong> — el 78.5% tiene compromiso 8-10/10. No es falta de motivación, es falta de método.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n">2</div><div class="avatar-item-text"><strong>Avanzar con un plan estructurado</strong> — el 81% cree que avanzaría más rápido con estructura y seguimiento cercano.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n">3</div><div class="avatar-item-text"><strong>Saber que va por buen camino</strong> — quiere certeza metodológica, no solo aprender — quiere confirmar que lo que hace está bien.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n">4</div><div class="avatar-item-text"><strong>Obtener su grado académico</strong> — para el 64.5% esto representa ascenso laboral o acceso a docencia universitaria.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n">5</div><div class="avatar-item-text"><strong>Usar IA de forma correcta y ética</strong> — quiere aprovechar la tecnología sin caer en plagio ni referencias inventadas.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n">6</div><div class="avatar-item-text"><strong>Trabajar sobre su propia tesis</strong> — no quiere ejemplos genéricos, quiere que alguien trabaje con ella en su investigación real.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n">7</div><div class="avatar-item-text"><strong>Salir de la parálisis</strong> — quiere dejar de procrastinar y sentir que está avanzando de forma concreta y medible.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n">8</div><div class="avatar-item-text"><strong>Logro personal y ejemplo</strong> — para el 14% es un desafío de vida, una meta propia que quiere cumplir independientemente del impacto laboral.</div></div>
+      </div>
+      <div class="avatar-card">
+        <div class="avatar-card-title">🛡️ 8 Objeciones</div>
+        <div class="avatar-item"><div class="avatar-item-n amber">1</div><div class="avatar-item-text"><strong>"Nunca pagué por ayuda antes"</strong> — el 57% nunca invirtió en ayuda externa para su tesis. Es la primera vez comprando algo así.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n amber">2</div><div class="avatar-item-text"><strong>"No tengo tiempo para un curso más"</strong> — el 75% dedica menos de 4h/semana. El evento debe sentirse como trabajo, no como formación adicional.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n amber">3</div><div class="avatar-item-text"><strong>"¿Servirá para mi tema específico?"</strong> — teme que el método sea genérico y no aplique a su área de investigación particular.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n amber">4</div><div class="avatar-item-text"><strong>"¿Puedo aprender IA a mi edad?"</strong> — el 92.9% tiene más de 36 años. El miedo a la tecnología es real y debe neutralizarse desde el inicio.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n amber">5</div><div class="avatar-item-text"><strong>"¿No voy a caer en plagio?"</strong> — el miedo a que la IA invente referencias o que el detector de plagio rechace el trabajo es una objeción frecuente.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n amber">6</div><div class="avatar-item-text"><strong>"Ya intenté antes y no funcionó"</strong> — el trauma de intentos fallidos genera desconfianza de que "esto también va a quedar a medias".</div></div>
+        <div class="avatar-item"><div class="avatar-item-n amber">7</div><div class="avatar-item-text"><strong>"¿Puedo conectarme en vivo los 2 días?"</strong> — la logística de los horarios (horario Lima) puede ser una barrera para personas de otros países o con trabajo nocturno.</div></div>
+        <div class="avatar-item"><div class="avatar-item-n amber">8</div><div class="avatar-item-text"><strong>"¿En 2 días realmente termino los antecedentes?"</strong> — escepticismo ante la velocidad de la promesa. Necesita ver el entregable concreto antes de creer que es posible.</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Informe de Avatar · Reto Revisión con IA · Teside Academy · Junio 2026 · Datos basados en 186 formularios completados de 282 compradores
+</div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const t = btn.dataset.t;
+    btn.closest('.tabs-wrap').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.closest('.tabs-wrap').querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(t).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
